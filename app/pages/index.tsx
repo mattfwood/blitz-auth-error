@@ -1,11 +1,9 @@
-import { Link, BlitzPage, useMutation, invokeWithMiddleware } from "blitz"
+import { Link, BlitzPage, useMutation } from "blitz"
 import { getSessionContext } from "@blitzjs/server"
 
 import Layout from "app/layouts/Layout"
 import logout from "app/auth/mutations/logout"
 import { useCurrentUser } from "app/hooks/useCurrentUser"
-import { Suspense } from "react"
-import getProjects from "app/projects/queries/getProjects"
 
 /*
  * This file is just for a pleasant getting started page for your new app.
@@ -52,84 +50,39 @@ const UserInfo = () => {
   }
 }
 
-const Home: BlitzPage = () => {
+const Home: BlitzPage = (props) => {
+  const [logoutMutation] = useMutation(logout)
   return (
     <div className="container">
       <main>
-        <div className="logo">
-          <img src="/logo.png" alt="blitz.js" />
-        </div>
-        <p>
-          <strong>Congrats!</strong> Your app is ready, including user sign-up and log-in.
-        </p>
-        <div className="buttons" style={{ marginTop: "1rem", marginBottom: "1rem" }}>
-          <Suspense fallback="Loading...">
+          {/* <Suspense fallback="Loading...">
             <UserInfo />
-          </Suspense>
-        </div>
-        <p>
-          <strong>
-            To add a new model to your app, <br />
-            run the following in your terminal:
-          </strong>
-        </p>
-        <pre>
-          <code>blitz generate all project name:string</code>
-        </pre>
-        <pre>
-          <code>blitz db migrate</code>
-        </pre>
-
-        <p>
-          Then <strong>restart the server</strong>
+          </Suspense> */}
           <pre>
-            <code>Ctrl + c</code>
+            {JSON.stringify(props)}
           </pre>
-          <pre>
-            <code>blitz start</code>
-          </pre>
-          and go to{" "}
-          <Link href="/projects">
-            <a>/projects</a>
-          </Link>
-        </p>
-        <div className="buttons" style={{ marginTop: "5rem" }}>
-          <a
-            className="button"
-            href="https://blitzjs.com/docs/getting-started?utm_source=blitz-new&utm_medium=app-template&utm_campaign=blitz-new"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-          <a
-            className="button-outline"
-            href="https://github.com/blitz-js/blitz"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Github Repo
-          </a>
-          <a
-            className="button-outline"
-            href="https://slack.blitzjs.com"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Slack Community
-          </a>
-        </div>
-      </main>
+          <br />
 
-      <footer>
-        <a
-          href="https://blitzjs.com?utm_source=blitz-new&utm_medium=app-template&utm_campaign=blitz-new"
-          target="_blank"
-          rel="noopener noreferrer"
+          <Link href="/signup">
+          <a className="button small">
+            <strong>Sign Up</strong>
+          </a>
+        </Link>
+        <Link href="/login">
+          <a className="button small">
+            <strong>Login</strong>
+          </a>
+        </Link>
+        <button
+          className="button small"
+          onClick={async () => {
+            await logoutMutation()
+          }}
         >
-          Powered by Blitz.js
-        </a>
-      </footer>
+          Logout
+        </button>
+
+      </main>
 
       <style jsx global>{`
         @import url("https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@300;700&display=swap");
@@ -269,17 +222,9 @@ const Home: BlitzPage = () => {
 Home.getLayout = (page) => <Layout title="Home">{page}</Layout>
 
 export const getServerSideProps = async ({ req, res }) => {
-  const data = await invokeWithMiddleware(
-    getProjects,
-    {
-      orderBy: { id: "asc" },
-    },
-    { req, res }
-  )
-
   const session = await getSessionContext(req, res)
 
-  return { props: { data, user: { id: session.userId } } }
+  return { props: { userId: session.userId } }
 }
 
 export default Home
